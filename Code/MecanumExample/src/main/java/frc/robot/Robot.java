@@ -28,6 +28,20 @@ public class Robot extends TimedRobot {
 
   private static final HashMap<String,Integer> buttonNames = new HashMap<String,Integer>();
 
+  static{
+    buttonNames.put("b_topright",12);
+    buttonNames.put("b_bottomright",11);
+    buttonNames.put("b_topcenter",10);
+    buttonNames.put("b_bottomcenter",9);
+    buttonNames.put("b_topleft",8);
+    buttonNames.put("b_bottomleft",7);
+    buttonNames.put("j_topright",6);
+    buttonNames.put("j_topleft",5);
+    buttonNames.put("j_bottomright",4);
+    buttonNames.put("j_bottomleft",3);
+    buttonNames.put("b_sideleft",2);
+  }
+
   private MecanumDrive m_robotDrive;
   private Joystick m_stick;
 
@@ -37,7 +51,7 @@ public class Robot extends TimedRobot {
     Jaguar rearLeft = new Jaguar(kRearLeftChannel);
     Jaguar frontRight = new Jaguar(kFrontRightChannel);
     Jaguar rearRight = new Jaguar(kRearRightChannel);
-
+    
     // Invert the left side motors.
     // You may need to change or remove this to match your robot.
     //frontLeft.setInverted(true);
