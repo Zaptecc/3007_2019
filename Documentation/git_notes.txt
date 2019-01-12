@@ -1,0 +1,21 @@
+Make a new local copy of the remote repository
+    $git init
+    $git remote add origin https://github.com/user/repo.git
+    $git pull origin master
+
+Sync your local copy with the remote repository, WITHOUT pushing your changes
+    $git pull origin master
+
+Add a new file to the git repository next time you push
+    $git add -v path/to/your/file.json
+
+Add all files you have changed [This does not add new files!]
+    $git add -uv
+
+Push the changes you've added (this will put them on the remote repository)
+    $git commit -m "I changed this stuff!"
+    $git push origin master
+
+Overwrite all the changes you've made to your local repository, pulling in the latest version of the remote
+    $git reset --hard origin/master
+    $git fetch origin master
