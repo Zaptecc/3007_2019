@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # FRC Team 3007 2019
 
 When trying to upload your contributions use the file update_local_changes.bat if your uploading something ALREADY in the main branch/folder.
@@ -8,3 +9,6 @@ One thing we dont want is useless commit comments when you use update_local_chan
 does, please DO NOT say stupid things that dont relate to it memes,random text,ect remember everyone can see that in the change log and
 you cant remove it please keep your stuff school appropriate (people like to see what our code looks like sometimes!)
 
+=======
+# FRC Team 3007 2019
+>>>>>>> 77640cb3289a29982bbb65b781357b7ccf29abcd
