@@ -1,1 +1,0 @@
-git add . -uv & git add . -v & timeout /t 5
