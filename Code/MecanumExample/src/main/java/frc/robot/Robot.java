@@ -29,17 +29,17 @@ public class Robot extends TimedRobot {
   private static final HashMap<String,Integer> buttonNames = new HashMap<String,Integer>();
 
   static{
-    buttonNames.put("b_topright",12);
-    buttonNames.put("b_bottomright",11);
-    buttonNames.put("b_topcenter",10);
-    buttonNames.put("b_bottomcenter",9);
-    buttonNames.put("b_topleft",8);
-    buttonNames.put("b_bottomleft",7);
-    buttonNames.put("j_topright",6);
-    buttonNames.put("j_topleft",5);
-    buttonNames.put("j_bottomright",4);
-    buttonNames.put("j_bottomleft",3);
-    buttonNames.put("b_sideleft",2);
+    buttonNames.put("b_tr",12); //On the six buttons on the base of the joystick, top right.
+    buttonNames.put("b_br",11); //On the six buttons on the base of the joystick, bottom right.
+    buttonNames.put("b_tc",10); //On the six buttons on the base of the joystick, top center.
+    buttonNames.put("b_bc",9); //On the six buttons on the base of the joystick, bottom center.
+    buttonNames.put("b_tl",8); //On the six buttons on the base of the joystick, top left. 
+    buttonNames.put("b_bl",7); //On the six buttons on the base of the joystick, bottom left.
+    buttonNames.put("j_tr",6); //On the four buttons on the top of the joystick, top right.
+    buttonNames.put("j_tl",5); //On the four buttons on the top of the joystick, top left.
+    buttonNames.put("j_br",4); //On the four buttons on the top of the joystick, bottom right.
+    buttonNames.put("j_bl",3); //On the four buttons on the top of the joystick, bottom left.
+    buttonNames.put("side_button",2); //The side button on the left of the joystick.
   }
 
   private MecanumDrive m_robotDrive;
@@ -54,8 +54,8 @@ public class Robot extends TimedRobot {
     
     // Invert the left side motors.
     // You may need to change or remove this to match your robot.
-    //frontLeft.setInverted(true);
-    //rearLeft.setInverted(true);
+    frontLeft.setInverted(false);
+    rearLeft.setInverted(false);
 
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
 
@@ -66,8 +66,16 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     // Use the joystick X axis for lateral movement, Y axis for forward
     // movement, and Z axis for rotation.
-    m_robotDrive.driveCartesian(-m_stick.getX(), m_stick.getY(),
-        -floorClip(m_stick.getZ() * 0.5, 0.3), 0.0);
+    double damper = 0.35d;
+    double xval = -floorClip(m_stick.getX() * damper, 0.1);
+    double yval = floorClip(m_stick.getY() * damper, 0.1);
+    double zval = -floorClip(m_stick.getZ() * damper, 0.1);
+
+    if(m_stick.getRawButton(buttonNames.get("b_bc")))
+    {
+      xval = 0.125d;
+    }
+    m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
   }
 
   public static double floorClip(double in, double floor)
