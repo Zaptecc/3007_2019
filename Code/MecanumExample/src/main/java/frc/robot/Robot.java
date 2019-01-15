@@ -49,12 +49,24 @@ public class Robot extends TimedRobot {
 
     public boolean isPressed()
     {
-      return M_Joystick == null ? false : M_Joystick.getRawButtonPressed(this.id);
+      return isPressed();
+    }
+
+    public boolean isPressed(Joystick stick)
+    {
+      stick = stick != null ? stick : M_Joystick;
+      return stick.getRawButtonPressed(this.id);
     }
 
     public boolean isReleased()
     {
-      return M_Joystick == null ? false : M_Joystick.getRawButtonReleased(this.id);
+      return isReleased(null);
+    }
+    
+    public boolean isReleased(Joystick stick)
+    {
+      stick = stick != null ? stick : M_Joystick;
+      return stick.getRawButtonReleased(this.id);
     }
   }
 
@@ -85,7 +97,7 @@ public class Robot extends TimedRobot {
     double yval = floorClip(M_Joystick.getY() * damper, 0.1);
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
 
-    if(M_Joystick.getRawButton(buttonNames.get("b_bc")))
+    if(Button.BASE_TOPCENTER.isPressed())
     {
       xval = 0.125d;
     }
