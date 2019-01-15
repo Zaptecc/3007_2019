@@ -26,24 +26,40 @@ public class Robot extends TimedRobot {
 
   private static final int kJoystickChannel = 0;
 
-  private static final HashMap<String,Integer> buttonNames = new HashMap<String,Integer>();
+  public enum Button
+  {
+    BASE_TOPRIGHT(12),
+    BASE_BOTRIGHT(11),
+    BASE_TOPCENTER(10),
+    BASE_BOTCENTER(9),
+    BASE_TOPLEFT(8),
+    BASE_BOTLEFT(7),
+    JOY_TOPRIGHT(6),
+    JOY_TOPLEFT(5),
+    JOY_BOTRIGHT(4),
+    JOY_BOTLEFT(3),
+    JOY_SIDEBUTTON(2),
+    JOY_TRIGGER(1);
 
-  static{
-    buttonNames.put("b_tr",12); //On the six buttons on the base of the joystick, top right.
-    buttonNames.put("b_br",11); //On the six buttons on the base of the joystick, bottom right.
-    buttonNames.put("b_tc",10); //On the six buttons on the base of the joystick, top center.
-    buttonNames.put("b_bc",9); //On the six buttons on the base of the joystick, bottom center.
-    buttonNames.put("b_tl",8); //On the six buttons on the base of the joystick, top left. 
-    buttonNames.put("b_bl",7); //On the six buttons on the base of the joystick, bottom left.
-    buttonNames.put("j_tr",6); //On the four buttons on the top of the joystick, top right.
-    buttonNames.put("j_tl",5); //On the four buttons on the top of the joystick, top left.
-    buttonNames.put("j_br",4); //On the four buttons on the top of the joystick, bottom right.
-    buttonNames.put("j_bl",3); //On the four buttons on the top of the joystick, bottom left.
-    buttonNames.put("side_button",2); //The side button on the left of the joystick.
+    public final int id;
+    private Button(int id)
+    {
+      this.id = id;
+    }
+
+    public boolean isPressed()
+    {
+      return M_Joystick == null ? false : M_Joystick.getRawButtonPressed(this.id);
+    }
+
+    public boolean isReleased()
+    {
+      return M_Joystick == null ? false : M_Joystick.getRawButtonReleased(this.id);
+    }
   }
 
   private MecanumDrive m_robotDrive;
-  private Joystick m_stick;
+  private static Joystick M_Joystick;
 
   @Override
   public void robotInit() {
@@ -52,14 +68,12 @@ public class Robot extends TimedRobot {
     Jaguar frontRight = new Jaguar(kFrontRightChannel);
     Jaguar rearRight = new Jaguar(kRearRightChannel);
     
-    // Invert the left side motors.
-    // You may need to change or remove this to match your robot.
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
 
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
 
-    m_stick = new Joystick(kJoystickChannel);
+    M_Joystick = new Joystick(kJoystickChannel);
   }
 
   @Override
@@ -67,11 +81,11 @@ public class Robot extends TimedRobot {
     // Use the joystick X axis for lateral movement, Y axis for forward
     // movement, and Z axis for rotation.
     double damper = 0.35d;
-    double xval = -floorClip(m_stick.getX() * damper, 0.1);
-    double yval = floorClip(m_stick.getY() * damper, 0.1);
-    double zval = -floorClip(m_stick.getZ() * damper, 0.1);
+    double xval = -floorClip(M_Joystick.getX() * damper, 0.1);
+    double yval = floorClip(M_Joystick.getY() * damper, 0.1);
+    double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
 
-    if(m_stick.getRawButton(buttonNames.get("b_bc")))
+    if(M_Joystick.getRawButton(buttonNames.get("b_bc")))
     {
       xval = 0.125d;
     }
