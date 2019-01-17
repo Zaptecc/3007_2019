@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * This is a demo program showing how to use Mecanum control with the RobotDrive
@@ -49,29 +50,17 @@ public class Robot extends TimedRobot {
 
     public boolean isPressed()
     {
-      return isPressed();
+      return isPressed(M_Joystick);
     }
 
     public boolean isPressed(Joystick stick)
     {
-      stick = stick != null ? stick : M_Joystick;
-      return stick.getRawButtonPressed(this.id);
-    }
-
-    public boolean isReleased()
-    {
-      return isReleased(null);
-    }
-    
-    public boolean isReleased(Joystick stick)
-    {
-      stick = stick != null ? stick : M_Joystick;
-      return stick.getRawButtonReleased(this.id);
+      return stick.getRawButton(this.id);
     }
   }
 
   private MecanumDrive m_robotDrive;
-  private static Joystick M_Joystick;
+  public static Joystick M_Joystick;
 
   @Override
   public void robotInit() {
@@ -83,23 +72,44 @@ public class Robot extends TimedRobot {
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
 
+    SmartDashboard.putBoolean("Testing", true);
+
+    frontRight.setSpeed(0.5);
+    frontLeft.setSpeed(0.5);
+    rearRight.setSpeed(frontRight.getSpeed() * 2.0);
+    rearLeft.setSpeed(frontLeft.getSpeed() * 2.0);
+    
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
 
     M_Joystick = new Joystick(kJoystickChannel);
   }
 
+  public int ticks = 0;
   @Override
   public void teleopPeriodic() {
+    ++ticks;
     // Use the joystick X axis for lateral movement, Y axis for forward
     // movement, and Z axis for rotation.
-    double damper = 0.35d;
+    double damper = 0.4d;
     double xval = -floorClip(M_Joystick.getX() * damper, 0.1);
     double yval = floorClip(M_Joystick.getY() * damper, 0.1);
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
 
+    if(Button.BASE_BOTLEFT.isPressed())
+    {
+      xval = -damper;
+    }
+    if(Button.BASE_BOTRIGHT.isPressed())
+    {
+      xval = damper;
+    }
     if(Button.BASE_TOPCENTER.isPressed())
     {
-      xval = 0.125d;
+      zval = damper;
+    }
+    if(Button.BASE_BOTCENTER.isPressed())
+    {
+      zval = -damper;
     }
     m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
   }
