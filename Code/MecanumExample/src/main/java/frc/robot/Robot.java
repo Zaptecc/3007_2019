@@ -47,11 +47,20 @@ public class Robot extends TimedRobot {
       this.id = id;
     }
 
+    /**
+     *  Checks to see what the current state of the button is.
+     * @return Returns true if the button is pressed.
+     */
     public boolean isPressed()
     {
       return isPressed(M_Joystick);
     }
 
+    /**
+     * Checks the specified joystick to see what the current state of the button is.
+     * @param stick The joystick to check.
+     * @return Returns true if the button is pressed.
+     */
     public boolean isPressed(Joystick stick)
     {
       return stick.getRawButton(this.id);
@@ -95,7 +104,7 @@ public class Robot extends TimedRobot {
     double yval = floorClip(M_Joystick.getY() * damper, 0.1);
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
 
-    if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false)
+    if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false || Button.JOY_TRIGGER.isPressed())
     {
       zval = 0.0d;
     }
