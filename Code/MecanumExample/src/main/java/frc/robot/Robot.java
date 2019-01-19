@@ -7,13 +7,12 @@
 
 package frc.robot;
 
-import java.util.HashMap;
-
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.smartint.*;
+import frc.robot.smartint.childs.*;
 
 /**
  * This is a demo program showing how to use Mecanum control with the RobotDrive
@@ -71,8 +70,7 @@ public class Robot extends TimedRobot {
     
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
-
-    SmartDashboard.putBoolean("Testing", true);
+    SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
 
     frontRight.setSpeed(0.5);
     frontLeft.setSpeed(0.5);
@@ -85,6 +83,8 @@ public class Robot extends TimedRobot {
   }
 
   public int ticks = 0;
+  public boolean testIng = false;
+  public int testNum = 0;
   @Override
   public void teleopPeriodic() {
     ++ticks;
@@ -94,6 +94,11 @@ public class Robot extends TimedRobot {
     double xval = -floorClip(M_Joystick.getX() * damper, 0.1);
     double yval = floorClip(M_Joystick.getY() * damper, 0.1);
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
+
+    if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false)
+    {
+      zval = 0.0d;
+    }
 
     if(Button.BASE_BOTLEFT.isPressed())
     {
