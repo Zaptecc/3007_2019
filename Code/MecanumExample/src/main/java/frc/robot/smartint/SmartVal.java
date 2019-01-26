@@ -42,6 +42,7 @@ public abstract class SmartVal
      * @return the SmartDashboard value.
      */
     protected abstract Object getVal();
+    
     /**
      * Sets the value to the SmartDashboard.
      * @param val value to replace the existing one with.
