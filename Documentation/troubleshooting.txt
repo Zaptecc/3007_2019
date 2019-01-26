@@ -14,6 +14,11 @@ Then, on the command line, run the following command:
 
 This will update the folder that the command line is currently running out of, and will make it recognize gradlew.
 
+If you continue to have this issue, manually build and deploy the code with the following commands:
+
+    >./gradlew build
+    >./gradlew deploy
+
 ################################################################################################################
 ################################################################################################################
 

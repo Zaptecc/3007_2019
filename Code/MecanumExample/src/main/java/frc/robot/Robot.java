@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
+import com.analog.adis16448.frc.*;
 
 /**
  * This is a demo program showing how to use Mecanum control with the RobotDrive
@@ -25,7 +26,7 @@ public class Robot extends TimedRobot {
   private static final int kRearRightChannel = 2;
 
   private static final int kJoystickChannel = 0;
-
+  public static final ADIS16448_IMU theGyro = new ADIS16448_IMU();
 
   public enum Button
   {
@@ -148,7 +149,6 @@ public class Robot extends TimedRobot {
 
 
     //Jihaan's section
-
 
 
 
