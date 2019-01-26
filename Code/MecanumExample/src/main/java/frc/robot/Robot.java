@@ -26,6 +26,7 @@ public class Robot extends TimedRobot {
 
   private static final int kJoystickChannel = 0;
 
+
   public enum Button
   {
     BASE_TOPRIGHT(12),
@@ -80,11 +81,6 @@ public class Robot extends TimedRobot {
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
-
-    frontRight.setSpeed(0.5);
-    frontLeft.setSpeed(0.5);
-    rearRight.setSpeed(frontRight.getSpeed() * 2.0);
-    rearLeft.setSpeed(frontLeft.getSpeed() * 2.0);
     
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
 
@@ -124,7 +120,43 @@ public class Robot extends TimedRobot {
     if(Button.BASE_BOTCENTER.isPressed())
     {
       zval = -damper;
+    
     }
+
+    //Yuliana's section
+
+
+
+
+
+    //Celina's section
+
+
+
+
+
+    //Samuel's section
+
+
+
+
+
+    //Varneeka's section
+
+
+
+
+
+    //Jihaan's section
+
+
+
+
+
+
+    //End sections
+
+
     m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
   }
 

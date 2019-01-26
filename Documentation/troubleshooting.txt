@@ -1,0 +1,27 @@
+################################################################################################################
+
+If you are having the following error:
+
+
+    'gradlew' is not recognized as an internal or external command. operable program or batch file.
+
+
+All you need to do is select the "TERMINAL" tab on the bottom panel, beneath the window you're viewing this in.
+On the far right side, ensure that it says "1: powershell".
+Then, on the command line, run the following command:
+
+    >Set-Location -Path C:\GitHub\3007_2019\Code\MecanumExample
+
+This will update the folder that the command line is currently running out of, and will make it recognize gradlew.
+
+################################################################################################################
+################################################################################################################
+
+If you are having the following error:
+
+
+    
+
+
+
+################################################################################################################
