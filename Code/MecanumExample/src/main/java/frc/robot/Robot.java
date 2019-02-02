@@ -115,24 +115,24 @@ public class Robot extends TimedRobot {
 
     if(ticks % 8 == 0)
     {
-      NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-      NetworkTableEntry tx = table.getEntry("tx");
-      NetworkTableEntry ty = table.getEntry("ty");
-      NetworkTableEntry ta = table.getEntry("ta");
+      NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight"); //Accessing the Limelight from the network.
+      NetworkTableEntry tx = table.getEntry("tx"); //Target X-offset from Limelight.
+      NetworkTableEntry ty = table.getEntry("ty"); //Target Y-offset from Limelight.
+      NetworkTableEntry ta = table.getEntry("ta"); //% of screen target fills of Limelight.
   
       //read values periodically
-      double x = tx.getDouble(0.0);
+      double x = tx.getDouble(0.0); //Convert the NetworkTableEntry to useable, double format.
       double y = ty.getDouble(0.0);
       double area = ta.getDouble(0.0);
   
       //post to smart dashboard periodically
-      SmartIntegration.setSmartValue("LimelightX", x);
+      SmartIntegration.setSmartValue("LimelightX", x); //Push the Limelight variables to SmartDashboard.
       SmartIntegration.setSmartValue("LimelightY", y);
       SmartIntegration.setSmartValue("LimelightArea", area);
 
     }
 
-    SmartIntegration.setSmartValue("Accelleration X", theGyro.getAccelX());
+    SmartIntegration.setSmartValue("Accelleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
     SmartIntegration.setSmartValue("Accelleration Y", theGyro.getAccelY());
     SmartIntegration.setSmartValue("Accelleration Z", theGyro.getAccelZ());  
 
@@ -158,6 +158,11 @@ public class Robot extends TimedRobot {
       zval = -damper;
     
     }
+
+    double limeXOff = (double)SmartIntegration.getSmartValue("LimelightX");
+    double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
+    double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
+    //Grab vars from smartdashboard.
 
     //Yuliana's section
 
