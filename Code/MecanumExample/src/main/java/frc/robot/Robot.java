@@ -7,6 +7,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -81,8 +84,15 @@ public class Robot extends TimedRobot {
     
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
-    SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
     
+    SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
+    SmartIntegration.addSmartItem(new SmartNum("Accelleration X", theGyro.getAccelX()));
+    SmartIntegration.addSmartItem(new SmartNum("Accelleration Y", theGyro.getAccelY()));
+    SmartIntegration.addSmartItem(new SmartNum("Accelleration Z", theGyro.getAccelZ()));
+    SmartIntegration.addSmartItem(new SmartNum("LimelightX", 0.0d));
+    SmartIntegration.addSmartItem(new SmartNum("LimelightY", 0.0d));
+    SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
+
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
 
     M_Joystick = new Joystick(kJoystickChannel);
@@ -100,6 +110,31 @@ public class Robot extends TimedRobot {
     double xval = -floorClip(M_Joystick.getX() * damper, 0.1);
     double yval = floorClip(M_Joystick.getY() * damper, 0.1);
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
+
+
+
+    if(ticks % 8 == 0)
+    {
+      NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+      NetworkTableEntry tx = table.getEntry("tx");
+      NetworkTableEntry ty = table.getEntry("ty");
+      NetworkTableEntry ta = table.getEntry("ta");
+  
+      //read values periodically
+      double x = tx.getDouble(0.0);
+      double y = ty.getDouble(0.0);
+      double area = ta.getDouble(0.0);
+  
+      //post to smart dashboard periodically
+      SmartIntegration.setSmartValue("LimelightX", x);
+      SmartIntegration.setSmartValue("LimelightY", y);
+      SmartIntegration.setSmartValue("LimelightArea", area);
+
+    }
+
+    SmartIntegration.setSmartValue("Accelleration X", theGyro.getAccelX());
+    SmartIntegration.setSmartValue("Accelleration Y", theGyro.getAccelY());
+    SmartIntegration.setSmartValue("Accelleration Z", theGyro.getAccelZ());  
 
     if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false || Button.JOY_TRIGGER.isPressed())
     {
