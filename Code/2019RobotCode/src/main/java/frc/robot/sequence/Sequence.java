@@ -8,9 +8,12 @@ public abstract class Sequence
      */
     protected int length;
 
+    /**
+     * @param length length in seconds.
+     */
     public Sequence(int length)
     {
-        this.length = length;
+        this.length = length * 60;
     }
 
     public boolean baseSequenceUpdate()

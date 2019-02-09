@@ -12,12 +12,14 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import frc.robot.sequence.SequenceMaster;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
+import com.revrobotics.*;
 
 /**
  * This is a demo program showing how to use Mecanum control with the RobotDrive
@@ -73,8 +75,18 @@ public class Robot extends TimedRobot {
     }
   }
 
-  private MecanumDrive m_robotDrive;
-  public static Joystick M_Joystick;
+  private static MecanumDrive m_robotDrive;
+  private static Joystick M_Joystick;
+
+  public static MecanumDrive getDrive()
+  {
+    return m_robotDrive;
+  }
+
+  public static Joystick getJoystick()
+  {
+    return M_Joystick;
+  }
 
   @Override
   public void robotInit() {
@@ -171,6 +183,14 @@ public class Robot extends TimedRobot {
     double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
     //Grab vars from smartdashboard.
 
+
+    Solenoid exampleSolenoid = new Solenoid(1);
+
+    exampleSolenoid.set(true);
+    exampleSolenoid.set(false);
+
+    
+    
     //Yuliana's section
 
 
