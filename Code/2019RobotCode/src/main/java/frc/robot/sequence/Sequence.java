@@ -19,7 +19,8 @@ public abstract class Sequence
     public boolean baseSequenceUpdate()
     {
         --length;
-        return length == 0;
+        sequenceUpdate();
+        return length != 0;
     }
 
     public abstract void sequenceUpdate();

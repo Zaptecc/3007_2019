@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
-import frc.robot.sequence.SequenceMaster;
+import frc.robot.sequence.*;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
@@ -96,18 +96,19 @@ public class Robot extends TimedRobot {
     Jaguar rearRight = new Jaguar(kRearRightChannel);
 
     
-    
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
     
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
+    SmartIntegration.addSmartItem(new SmartBool("Limelight Adjust Enabled",true));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration X", theGyro.getAccelX()));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration Y", theGyro.getAccelY()));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration Z", theGyro.getAccelZ()));
     SmartIntegration.addSmartItem(new SmartNum("LimelightX", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightY", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
-
+    SmartIntegration.addSmartItem(new SmartNum("Limelight Adjust Num", 0.0d));
+    SequenceMaster.addSequence(new SequenceAutoAdjust(-1));
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
 
     M_Joystick = new Joystick(kJoystickChannel);
@@ -148,13 +149,13 @@ public class Robot extends TimedRobot {
       SmartIntegration.setSmartValue("LimelightX", x); //Push the Limelight variables to SmartDashboard.
       SmartIntegration.setSmartValue("LimelightY", y);
       SmartIntegration.setSmartValue("LimelightArea", area);
-
     }
 
     SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
     SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
     SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
 
+    
     if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false || Button.JOY_TRIGGER.isPressed())
     {
       zval = 0.0d;
@@ -183,13 +184,14 @@ public class Robot extends TimedRobot {
     double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
     //Grab vars from smartdashboard.
 
-
-    Solenoid exampleSolenoid = new Solenoid(1);
-
-    exampleSolenoid.set(true);
-    exampleSolenoid.set(false);
-
-    
+    if(Math.abs(limeXOff) <= 20.0f && limeArea >= 3.0d && limeArea <= 35.0d)
+    {
+      SmartIntegration.setSmartValue("Limelight Adjust Enabled", true);
+    }
+    else
+    {
+      SmartIntegration.setSmartValue("Limelight Adjust Enabled", false);
+    }    
     
     //Yuliana's section
 
