@@ -18,6 +18,9 @@ import frc.robot.sequence.SequenceMaster;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
+import edu.wpi.first.wpilibj.spark;
+import com.revrobotics;
+
 
 /**
  * This is a demo program showing how to use Mecanum control with the RobotDrive
@@ -119,7 +122,10 @@ public class Robot extends TimedRobot {
     //2 neo brushless motors for pulley system
     //2 Pneumatic pistons
     //
-
+var
+    if ispressed(Button.(1)) {
+      CANSparkMax
+    }
     if(ticks % 8 == 0)
     {
       NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight"); //Accessing the Limelight from the network.
