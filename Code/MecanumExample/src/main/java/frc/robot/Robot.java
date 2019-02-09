@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
+import frc.robot.sequence.SequenceMaster;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
@@ -81,6 +82,8 @@ public class Robot extends TimedRobot {
     Jaguar rearLeft = new Jaguar(kRearLeftChannel);
     Jaguar frontRight = new Jaguar(kFrontRightChannel);
     Jaguar rearRight = new Jaguar(kRearRightChannel);
+
+    
     
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
@@ -111,7 +114,7 @@ public class Robot extends TimedRobot {
     double yval = floorClip(M_Joystick.getY() * damper, 0.1);
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
 
-
+    SequenceMaster.updateSequences();
 
     if(ticks % 8 == 0)
     {
