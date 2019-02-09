@@ -116,6 +116,10 @@ public class Robot extends TimedRobot {
 
     SequenceMaster.updateSequences();
 
+    //2 neo brushless motors for pulley system
+    //2 Pneumatic pistons
+    //
+
     if(ticks % 8 == 0)
     {
       NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight"); //Accessing the Limelight from the network.
