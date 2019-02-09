@@ -89,9 +89,9 @@ public class Robot extends TimedRobot {
     rearLeft.setInverted(false);
     
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
-    SmartIntegration.addSmartItem(new SmartNum("Accelleration X", theGyro.getAccelX()));
-    SmartIntegration.addSmartItem(new SmartNum("Accelleration Y", theGyro.getAccelY()));
-    SmartIntegration.addSmartItem(new SmartNum("Accelleration Z", theGyro.getAccelZ()));
+    SmartIntegration.addSmartItem(new SmartNum("Acceleration X", theGyro.getAccelX()));
+    SmartIntegration.addSmartItem(new SmartNum("Acceleration Y", theGyro.getAccelY()));
+    SmartIntegration.addSmartItem(new SmartNum("Acceleration Z", theGyro.getAccelZ()));
     SmartIntegration.addSmartItem(new SmartNum("LimelightX", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightY", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
@@ -135,9 +135,9 @@ public class Robot extends TimedRobot {
 
     }
 
-    SmartIntegration.setSmartValue("Accelleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
-    SmartIntegration.setSmartValue("Accelleration Y", theGyro.getAccelY());
-    SmartIntegration.setSmartValue("Accelleration Z", theGyro.getAccelZ());  
+    SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
+    SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
+    SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
 
     if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false || Button.JOY_TRIGGER.isPressed())
     {
