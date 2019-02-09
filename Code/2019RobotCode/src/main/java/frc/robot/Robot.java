@@ -12,14 +12,15 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import frc.robot.sequence.SequenceMaster;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
-import edu.wpi.first.wpilibj.spark;
-import com.revrobotics;
+import com.revrobotics.*;
+import edu.wpi.first.wpilibj.Spark;
 
 
 /**
@@ -76,16 +77,26 @@ public class Robot extends TimedRobot {
     }
   }
 
-  private MecanumDrive m_robotDrive;
-  public static Joystick M_Joystick;
+  private static MecanumDrive m_robotDrive;
+  private static Joystick M_Joystick;
+
+  public static MecanumDrive getDrive()
+  {
+    return m_robotDrive;
+  }
+
+  public static Joystick getJoystick()
+  {
+    return M_Joystick;
+  }
 
   @Override
   public void robotInit() {
-    Jaguar frontLeft = new Jaguar(kFrontLeftChannel);
-    Jaguar rearLeft = new Jaguar(kRearLeftChannel);
-    Jaguar frontRight = new Jaguar(kFrontRightChannel);
-    Jaguar rearRight = new Jaguar(kRearRightChannel);
-
+    Spark frontLeft = new Spark(kFrontLeftChannel);
+    Spark rearLeft = new Spark(kRearLeftChannel);
+    Spark frontRight = new Spark(kFrontRightChannel);
+    Spark rearRight = new Spark(kRearRightChannel);
+    CANSparkMax climbarm = new CANSparkMax(kClimbArm);
     
     
     frontLeft.setInverted(false);
@@ -122,10 +133,7 @@ public class Robot extends TimedRobot {
     //2 neo brushless motors for pulley system
     //2 Pneumatic pistons
     //
-var
-    if ispressed(Button.(1)) {
-      CANSparkMax
-    }
+
     if(ticks % 8 == 0)
     {
       NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight"); //Accessing the Limelight from the network.
@@ -177,6 +185,14 @@ var
     double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
     //Grab vars from smartdashboard.
 
+
+    Solenoid exampleSolenoid = new Solenoid(1);
+
+    exampleSolenoid.set(true);
+    exampleSolenoid.set(false);
+
+    
+    
     //Yuliana's section
 
 
