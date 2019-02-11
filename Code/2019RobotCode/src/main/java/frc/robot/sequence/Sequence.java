@@ -7,13 +7,15 @@ public abstract class Sequence
      * Set to -1 if this sequence is neverending.
      */
     protected int length;
+    public final String id;
 
     /**
      * @param length length in seconds.
      */
-    public Sequence(int length)
+    public Sequence(int length, String id)
     {
         this.length = length * 60;
+        this.id = id;
     }
 
     public boolean baseSequenceUpdate()

@@ -10,9 +10,11 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import frc.robot.sequence.*;
@@ -20,6 +22,7 @@ import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
 import com.revrobotics.*;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 /**
  * This is a demo program showing how to use Mecanum control with the RobotDrive
@@ -30,6 +33,9 @@ public class Robot extends TimedRobot {
   private static final int kRearLeftChannel = 0;
   private static final int kFrontRightChannel = 3;
   private static final int kRearRightChannel = 2;
+
+  private static final int kFangMotor = 2;
+  private static final int kPulleyMotor = 4;
 
   private static final int kJoystickChannel = 0;
   public static final ADIS16448_IMU theGyro = new ADIS16448_IMU();
@@ -77,6 +83,9 @@ public class Robot extends TimedRobot {
 
   private static MecanumDrive m_robotDrive;
   private static Joystick M_Joystick;
+  private static Joystick M_Joystick2;
+  public CANSparkMax fangMotor = new CANSparkMax(kFangMotor, MotorType.kBrushless);
+  public Jaguar pulleyMotor = new Jaguar(kPulleyMotor);
 
   public static MecanumDrive getDrive()
   {
@@ -87,6 +96,10 @@ public class Robot extends TimedRobot {
   {
     return M_Joystick;
   }
+  public static Joystick getJoystick2()
+  {
+    return M_Joystick2;
+  }
 
   @Override
   public void robotInit() {
@@ -94,7 +107,6 @@ public class Robot extends TimedRobot {
     Jaguar rearLeft = new Jaguar(kRearLeftChannel);
     Jaguar frontRight = new Jaguar(kFrontRightChannel);
     Jaguar rearRight = new Jaguar(kRearRightChannel);
-
     
     frontLeft.setInverted(false);
     rearLeft.setInverted(false);
@@ -108,17 +120,31 @@ public class Robot extends TimedRobot {
     SmartIntegration.addSmartItem(new SmartNum("LimelightY", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Limelight Adjust Num", 0.0d));
-    SequenceMaster.addSequence(new SequenceAutoAdjust(-1));
+    SmartIntegration.addSmartItem(new SmartBool("Auto Adjust Enabled", false));
+    SequenceMaster.addSequence(new SequenceAutoAdjust(-1)); 
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
-
+    theGyro.reset();
+    theGyro.calibrate();
     M_Joystick = new Joystick(kJoystickChannel);
+    M_Joystick2 = new Joystick(kJoystickChannel + 1);
   }
 
   public int ticks = 0;
   public boolean testIng = false;
   public int testNum = 0;
+
   @Override
   public void teleopPeriodic() {
+    robotUpdate();
+  }
+  @Override
+  public void autonomousPeriodic() {
+    robotUpdate();
+  }
+
+  //The main update function, called from both autonomous and teleop as of right now.
+  public void robotUpdate()
+  {
     ++ticks;
     // Use the joystick X axis for lateral movement, Y axis for forward
     // movement, and Z axis for rotation.
@@ -128,6 +154,8 @@ public class Robot extends TimedRobot {
     double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
 
     SequenceMaster.updateSequences();
+
+    //Compressor compressor = new Compressor(1);
 
     //2 neo brushless motors for pulley system
     //2 Pneumatic pistons
@@ -149,12 +177,10 @@ public class Robot extends TimedRobot {
       SmartIntegration.setSmartValue("LimelightX", x); //Push the Limelight variables to SmartDashboard.
       SmartIntegration.setSmartValue("LimelightY", y);
       SmartIntegration.setSmartValue("LimelightArea", area);
+      SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
+      SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
+      SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
     }
-
-    SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
-    SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
-    SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
-
     
     if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false || Button.JOY_TRIGGER.isPressed())
     {
@@ -176,7 +202,6 @@ public class Robot extends TimedRobot {
     if(Button.BASE_BOTCENTER.isPressed())
     {
       zval = -damper;
-    
     }
 
     double limeXOff = (double)SmartIntegration.getSmartValue("LimelightX");
@@ -225,6 +250,18 @@ public class Robot extends TimedRobot {
 
     //End sections
 
+
+    //Testing the fang motor, setting speed of Y value of second joystick if button is pressed
+    if(Button.JOY_TOPRIGHT.isPressed(getJoystick2()))
+    {
+      fangMotor.set(getJoystick2().getY());
+    }
+
+    //Testing the pulley motor, setting speed of Y value of joystick if button is pressed
+    if(Button.JOY_TOPRIGHT.isPressed(getJoystick()))
+    {
+      pulleyMotor.set(getJoystick().getY());
+    }
 
     m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
   }

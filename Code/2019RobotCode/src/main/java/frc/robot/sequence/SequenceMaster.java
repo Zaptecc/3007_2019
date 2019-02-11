@@ -24,4 +24,19 @@ public final class SequenceMaster
     {
         activeSequences.add(sequence);
     }
+
+    public static boolean isSequenceRunning(String id)
+    {
+        for(int i = 0; i < activeSequences.size(); ++i)
+        {
+            Sequence s = activeSequences.get(i);
+
+            if(s.id.equals(id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
