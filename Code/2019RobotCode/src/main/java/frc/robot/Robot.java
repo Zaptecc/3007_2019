@@ -22,6 +22,7 @@ import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
 import com.revrobotics.*;
+import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 /**
@@ -77,6 +78,10 @@ public class Robot extends TimedRobot {
      */
     public boolean isPressed(Joystick stick)
     {
+      if(stick == null) {
+        System.out.println("Joystick is not found, cannot determine if button is pressed!!");
+        return false;
+      }
       return stick.getRawButton(this.id);
     }
   }
@@ -86,7 +91,10 @@ public class Robot extends TimedRobot {
   private static Joystick M_Joystick2;
   public CANSparkMax fangMotor = new CANSparkMax(kFangMotor, MotorType.kBrushless);
   public Jaguar pulleyMotor = new Jaguar(kPulleyMotor);
-
+  public Compressor comp = new Compressor(0);
+  public Solenoid solArm = new Solenoid(0);
+  public Solenoid solHand = new Solenoid(1);
+  public SequenceGrab grabSequence;
   public static MecanumDrive getDrive()
   {
     return m_robotDrive;
@@ -96,11 +104,12 @@ public class Robot extends TimedRobot {
   {
     return M_Joystick;
   }
+
   public static Joystick getJoystick2()
   {
     return M_Joystick2;
   }
-
+  
   @Override
   public void robotInit() {
     Jaguar frontLeft = new Jaguar(kFrontLeftChannel);
@@ -108,8 +117,8 @@ public class Robot extends TimedRobot {
     Jaguar frontRight = new Jaguar(kFrontRightChannel);
     Jaguar rearRight = new Jaguar(kRearRightChannel);
     
-    frontLeft.setInverted(false);
-    rearLeft.setInverted(false);
+    //frontLeft.setInverted(false);
+    //rearLeft.setInverted(false);
     
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
     SmartIntegration.addSmartItem(new SmartBool("Limelight Adjust Enabled",true));
@@ -127,6 +136,8 @@ public class Robot extends TimedRobot {
     theGyro.calibrate();
     M_Joystick = new Joystick(kJoystickChannel);
     M_Joystick2 = new Joystick(kJoystickChannel + 1);
+    comp.start();
+    m_robotDrive.setExpiration(0.1d); 
   }
 
   public int ticks = 0;
@@ -155,11 +166,33 @@ public class Robot extends TimedRobot {
 
     SequenceMaster.updateSequences();
 
-    //Compressor compressor = new Compressor(1);
+    boolean flag = Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2() == null ? Robot.getJoystick() : Robot.getJoystick2());
 
-    //2 neo brushless motors for pulley system
-    //2 Pneumatic pistons
-    //
+    if(flag && !SequenceMaster.isSequenceRunning("Grab"))
+    {
+      grabSequence = new SequenceGrab(solArm, solHand);
+      SequenceMaster.addSequence(grabSequence);
+    }
+
+    if(Button.BASE_BOTLEFT.isPressed())
+    {
+      SequenceGrab.ARM_OUT = true;
+    }
+    else
+    {
+      SequenceGrab.ARM_OUT = false;
+    }
+    if(Button.BASE_TOPLEFT.isPressed())
+    {
+      SequenceGrab.HAND_OUT = true;
+    }
+    else
+    {
+      SequenceGrab.HAND_OUT = false;
+    }
+
+    solArm.set(!SequenceGrab.ARM_OUT ? grabSequence != null ? grabSequence.armOut : false : SequenceGrab.ARM_OUT);
+    solHand.set(!SequenceGrab.HAND_OUT ? grabSequence != null ? grabSequence.handOut : false : SequenceGrab.HAND_OUT);
 
     if(ticks % 8 == 0)
     {
@@ -181,42 +214,8 @@ public class Robot extends TimedRobot {
       SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
       SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
     }
-    
-    if((boolean)SmartIntegration.getSmartValue("RotationEnabled") == false || Button.JOY_TRIGGER.isPressed())
-    {
-      zval = 0.0d;
-    }
 
-    if(Button.BASE_BOTLEFT.isPressed())
-    {
-      xval = -damper;
-    }
-    if(Button.BASE_BOTRIGHT.isPressed())
-    {
-      xval = damper;
-    }
-    if(Button.BASE_TOPCENTER.isPressed())
-    {
-      zval = damper;
-    }
-    if(Button.BASE_BOTCENTER.isPressed())
-    {
-      zval = -damper;
-    }
-
-    double limeXOff = (double)SmartIntegration.getSmartValue("LimelightX");
-    double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
-    double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
-    //Grab vars from smartdashboard.
-
-    if(Math.abs(limeXOff) <= 20.0f && limeArea >= 3.0d && limeArea <= 35.0d)
-    {
-      SmartIntegration.setSmartValue("Limelight Adjust Enabled", true);
-    }
-    else
-    {
-      SmartIntegration.setSmartValue("Limelight Adjust Enabled", false);
-    }    
+    SmartIntegration.setSmartValue("Limelight Adjust Enabled", autoAdjustEnabled());
     
     //Yuliana's section
 
@@ -254,16 +253,37 @@ public class Robot extends TimedRobot {
     //Testing the fang motor, setting speed of Y value of second joystick if button is pressed
     if(Button.JOY_TOPRIGHT.isPressed(getJoystick2()))
     {
-      fangMotor.set(getJoystick2().getY());
+      fangMotor.set(-getJoystick2().getY() * 0.55);
+    }
+    else
+    {
+      fangMotor.set(0.0d);
     }
 
     //Testing the pulley motor, setting speed of Y value of joystick if button is pressed
     if(Button.JOY_TOPRIGHT.isPressed(getJoystick()))
     {
-      pulleyMotor.set(getJoystick().getY());
+      pulleyMotor.set(-getJoystick().getY());
+      xval = yval = zval = 0.0d;
+    }
+    else
+    {
+      pulleyMotor.set(0.0d);
     }
 
-    m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
+    if(Button.JOY_BOTLEFT.isPressed())
+    {
+      m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
+    }
+  }
+
+  public static boolean autoAdjustEnabled()
+  {
+    double limeXOff = (double)SmartIntegration.getSmartValue("LimelightX");
+    double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
+    double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
+
+    return Math.abs(limeXOff) <= 20.0f && limeArea >= 3.0d && limeArea <= 35.0d;
   }
 
   public static double floorClip(double in, double floor)

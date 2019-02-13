@@ -22,7 +22,7 @@ public class SequenceAutoAdjust extends Sequence
         double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
         double rotationOff = 0.0d;
         double areaPerc = limeArea / 30.0d;
-        if(Math.abs(limeXOff) <= 20.0f && limeArea >= 3.0d && limeArea <= 35.0d && Button.JOY_TOPLEFT.isPressed())
+        if(Robot.autoAdjustEnabled() && Button.JOY_TOPLEFT.isPressed())
         {
             rotationOff = (limeXOff / 20.0f) * areaPerc;
         }
