@@ -15,6 +15,16 @@ public class SequenceGrab extends Sequence
     public boolean handOut = false;
     public boolean armOut = false;
     
+    public enum GrabStates
+    {
+        INACTIVE,//0 Retracts both the arm and the hand.
+        ACTIVE,//1 Extends just the arm.
+        INITIALIZE,//2 Extends the arm and grabs sooner than HOLDING.
+        HOLDING;//3 Extends both the arm and the hand, or just the hand if the arm is extended.
+    }
+
+    public GrabStates handState = GrabStates.INACTIVE;
+    
     public SequenceGrab(Solenoid arm, Solenoid hand)
     {
         super(-1,"Grab");
@@ -22,29 +32,34 @@ public class SequenceGrab extends Sequence
         handPiston = hand;
     }
 
+    public void setState(GrabStates state)
+    {
+        handState = state;
+    }
+
     @Override
     public void sequenceUpdate() 
     {
-        boolean flag = Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2() == null ? Robot.getJoystick() : Robot.getJoystick2());
-        if(flag)
+        if(handState.ordinal() > 0)
         {
+            int maxLen = (HAND_MAX_OFFSET);
             ++handOffset;
-            ARM_OUT = armOut = true;
-            if(handOffset >= HAND_MAX_OFFSET)
+            armPiston.set(true);
+            handPiston.set((handState.ordinal() > 1) && handOffset >= maxLen);
+
+            if(handOffset >= maxLen && handState.ordinal() > 1)
             {
-                HAND_OUT = handOut = true;
-                handOffset = HAND_MAX_OFFSET;
+                handOffset = maxLen;
             }
         }
         else
         {
-            HAND_OUT = handOut = false;
+            handPiston.set(false);
             --handOffset;
 
             if(handOffset <= -HAND_MAX_OFFSET)
             {
-                ARM_OUT = armOut = false;
-                length = 0;
+                armPiston.set(false);
             }
         }
     }

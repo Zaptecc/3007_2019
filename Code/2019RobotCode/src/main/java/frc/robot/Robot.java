@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import frc.robot.sequence.*;
+import frc.robot.sequence.SequenceGrab.GrabStates;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
 import com.analog.adis16448.frc.*;
@@ -95,6 +96,7 @@ public class Robot extends TimedRobot {
   public Solenoid solArm = new Solenoid(0);
   public Solenoid solHand = new Solenoid(1);
   public SequenceGrab grabSequence;
+  public SequenceClimb climbSequence;
   public static MecanumDrive getDrive()
   {
     return m_robotDrive;
@@ -121,6 +123,7 @@ public class Robot extends TimedRobot {
     //rearLeft.setInverted(false);
     
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
+    SmartIntegration.addSmartItem(new SmartBool("ClimbModeEnabled",false));
     SmartIntegration.addSmartItem(new SmartBool("Limelight Adjust Enabled",true));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration X", theGyro.getAccelX()));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration Y", theGyro.getAccelY()));
@@ -130,6 +133,8 @@ public class Robot extends TimedRobot {
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Limelight Adjust Num", 0.0d));
     SmartIntegration.addSmartItem(new SmartBool("Auto Adjust Enabled", false));
+    SmartIntegration.addSmartItem(new SmartNum("Fang Motor Speed", 0.0d));
+    SmartIntegration.addSmartItem(new SmartNum("Slide System Speed", 0.0d));
     SequenceMaster.addSequence(new SequenceAutoAdjust(-1)); 
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
     theGyro.reset();
@@ -138,6 +143,10 @@ public class Robot extends TimedRobot {
     M_Joystick2 = new Joystick(kJoystickChannel + 1);
     comp.start();
     m_robotDrive.setExpiration(0.1d); 
+    grabSequence = new SequenceGrab(solArm, solHand);
+    climbSequence = new SequenceClimb(fangMotor, pulleyMotor, theGyro);
+    SequenceMaster.addSequence(grabSequence);
+    SequenceMaster.addSequence(climbSequence);
   }
 
   public int ticks = 0;
@@ -153,46 +162,27 @@ public class Robot extends TimedRobot {
     robotUpdate();
   }
 
+
+  public static boolean climbModeEnabled = false;
   //The main update function, called from both autonomous and teleop as of right now.
   public void robotUpdate()
   {
     ++ticks;
     // Use the joystick X axis for lateral movement, Y axis for forward
     // movement, and Z axis for rotation.
-    double damper = 0.4d;
-    double xval = -floorClip(M_Joystick.getX() * damper, 0.1);
-    double yval = floorClip(M_Joystick.getY() * damper, 0.1);
-    double zval = -floorClip(M_Joystick.getZ() * damper, 0.1);
-
+    double damper = 0.3d;
+    double xval = -floorClip(M_Joystick.getX() * damper, 0.125);
+    double yval = floorClip(M_Joystick.getY() * damper, 0.125);
+    double zval = -floorClip(M_Joystick.getZ() * damper, 0.3);
+    SmartIntegration.setSmartValue("Fang Motor Speed", fangMotor.get());
     SequenceMaster.updateSequences();
-
-    boolean flag = Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2() == null ? Robot.getJoystick() : Robot.getJoystick2());
-
-    if(flag && !SequenceMaster.isSequenceRunning("Grab"))
-    {
-      grabSequence = new SequenceGrab(solArm, solHand);
-      SequenceMaster.addSequence(grabSequence);
-    }
-
-    if(Button.BASE_BOTLEFT.isPressed())
-    {
-      SequenceGrab.ARM_OUT = true;
-    }
-    else
-    {
-      SequenceGrab.ARM_OUT = false;
-    }
-    if(Button.BASE_TOPLEFT.isPressed())
-    {
-      SequenceGrab.HAND_OUT = true;
-    }
-    else
-    {
-      SequenceGrab.HAND_OUT = false;
-    }
-
-    solArm.set(!SequenceGrab.ARM_OUT ? grabSequence != null ? grabSequence.armOut : false : SequenceGrab.ARM_OUT);
-    solHand.set(!SequenceGrab.HAND_OUT ? grabSequence != null ? grabSequence.handOut : false : SequenceGrab.HAND_OUT);
+    GrabStates curState = Button.BASE_BOTLEFT.isPressed() ? GrabStates.HOLDING : 
+    Button.BASE_TOPLEFT.isPressed() ? GrabStates.ACTIVE : 
+    Button.BASE_BOTCENTER.isPressed() ? GrabStates.INACTIVE : 
+    grabSequence.handState;
+    
+    if(curState != grabSequence.handState) {grabSequence.handOffset = 0;}
+    grabSequence.handState = curState;
 
     if(ticks % 8 == 0)
     {
@@ -249,31 +239,34 @@ public class Robot extends TimedRobot {
 
     //End sections
 
+    if(Button.BASE_BOTRIGHT.isPressed(getJoystick()))
+    {
+      climbModeEnabled = true;
+    }
+    if(Button.BASE_TOPRIGHT.isPressed(getJoystick()))
+    {
+      climbModeEnabled = false;
+    }
+
 
     //Testing the fang motor, setting speed of Y value of second joystick if button is pressed
-    if(Button.JOY_TOPRIGHT.isPressed(getJoystick2()))
+    if(Button.JOY_TOPRIGHT.isPressed(getJoystick()) && climbModeEnabled)
     {
-      fangMotor.set(-getJoystick2().getY() * 0.55);
+      fangMotor.set(-getJoystick().getY() * 0.55);
     }
     else
     {
       fangMotor.set(0.0d);
     }
 
+    SmartIntegration.setSmartValue("ClimbModeEnabled", climbModeEnabled);
+
     //Testing the pulley motor, setting speed of Y value of joystick if button is pressed
-    if(Button.JOY_TOPRIGHT.isPressed(getJoystick()))
-    {
-      pulleyMotor.set(-getJoystick().getY());
-      xval = yval = zval = 0.0d;
-    }
-    else
-    {
-      pulleyMotor.set(0.0d);
-    }
 
     if(Button.JOY_BOTLEFT.isPressed())
     {
-      m_robotDrive.driveCartesian(xval, yval, zval, 0.0);
+      boolean isClimbing = climbModeEnabled;
+      m_robotDrive.driveCartesian(isClimbing ? 0.0d : -xval, isClimbing ? -Math.abs(yval) : -yval, isClimbing ? 0.0d : -zval, 0.0);
     }
   }
 
