@@ -122,6 +122,8 @@ public class Robot extends TimedRobot {
     
     //frontLeft.setInverted(false);
     //rearLeft.setInverted(false);
+
+    
     
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
     SmartIntegration.addSmartItem(new SmartBool("ClimbModeEnabled",false));
@@ -131,6 +133,7 @@ public class Robot extends TimedRobot {
     SmartIntegration.addSmartItem(new SmartNum("Acceleration Z", theGyro.getAccelZ()));
     SmartIntegration.addSmartItem(new SmartNum("LimelightX", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightY", 0.0d));
+    SmartIntegration.addSmartItem(new SmartNum("LimelightStrafe", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Limelight Adjust Num", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Sequences Running", 0.0d));
@@ -193,6 +196,7 @@ public class Robot extends TimedRobot {
       NetworkTableEntry tx = table.getEntry("tx"); //Target X-offset from Limelight.
       NetworkTableEntry ty = table.getEntry("ty"); //Target Y-offset from Limelight.
       NetworkTableEntry ta = table.getEntry("ta"); //% of screen target fills of Limelight.
+      NetworkTableEntry ts = table.getEntry("ts"); //% of screen target fills of Limelight.
   
       //read values periodically
       double x = tx.getDouble(0.0); //Convert the NetworkTableEntry to useable, double format.
@@ -202,6 +206,7 @@ public class Robot extends TimedRobot {
       //post to smart dashboard periodically
       SmartIntegration.setSmartValue("LimelightX", x); //Push the Limelight variables to SmartDashboard.
       SmartIntegration.setSmartValue("LimelightY", y);
+      SmartIntegration.setSmartValue("LimelightStrafe", ts.getDouble(0.0));
       SmartIntegration.setSmartValue("LimelightArea", area);
       SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
       SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
@@ -237,6 +242,7 @@ public class Robot extends TimedRobot {
     }
 
     SmartIntegration.setSmartValue("ClimbModeEnabled", climbModeEnabled);
+    NetworkTableInstance.getDefault().getTable("limelight").getEntry("camMode").setNumber(Button.JOY_TRIGGER.isPressed() ? 0 : 1);
 
     if(Button.JOY_BOTLEFT.isPressed() || Button.JOY_TRIGGER.isPressed())
     {
@@ -246,7 +252,7 @@ public class Robot extends TimedRobot {
       {
         double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
         double scale = 0.05d + 0.95d * (((35.0d - limeArea) / 35.0d));
-        xval = xval * scale;
+        //xval = xval * scale;
         yval = yval * scale;
       }
       m_robotDrive.driveCartesian(isClimbing ? 0.0d : isOnlyAutoAdjust ? 0.0d : -xval, isClimbing ? -Math.abs(yval) : isOnlyAutoAdjust ? 0.0d : -yval, isClimbing ? 0.0d : -zval, 0.0);
