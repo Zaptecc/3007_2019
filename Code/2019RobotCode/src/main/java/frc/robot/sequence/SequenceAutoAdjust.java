@@ -6,13 +6,14 @@ import frc.robot.smartint.SmartIntegration;
 
 public class SequenceAutoAdjust extends Sequence
 {
+    public double rotationOffset = 0.0d;
     /**
      * Create a sequence to auto-adjust the robot's angle based on the limelight vision.
      * @param seconds seconds to spend adjusting
      */
-    public SequenceAutoAdjust(int seconds)
+    public SequenceAutoAdjust()
     {
-        super(seconds, "AutoAdjust");
+        super(-1, "AutoAdjust");
     }
 
     @Override
@@ -20,16 +21,10 @@ public class SequenceAutoAdjust extends Sequence
         double limeXOff = (double)SmartIntegration.getSmartValue("LimelightX");
         double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
         double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
-        double rotationOff = 0.0d;
         double areaPerc = limeArea / 30.0d;
-        
-        if(Robot.autoAdjustEnabled() && Button.JOY_TOPLEFT.isPressed())
-        {
-            rotationOff = (limeXOff / 20.0f) * areaPerc;
-        }
-        
-        SmartIntegration.setSmartValue("Limelight Adjust Num", rotationOff);
+        double speedMultiplier = 2.0 / limeArea * 5.0d;
+        rotationOffset = (limeXOff / 20.0f) * areaPerc * speedMultiplier;
+        SmartIntegration.setSmartValue("Limelight Adjust Num", rotationOffset);
         SmartIntegration.setSmartValue("Auto Adjust Enabled", Button.JOY_TOPLEFT.isPressed());
-        Robot.getDrive().driveCartesian(0d, 0d, rotationOff, 0.0d);
     }
 }

@@ -97,6 +97,7 @@ public class Robot extends TimedRobot {
   public Solenoid solHand = new Solenoid(1);
   public SequenceGrab grabSequence;
   public SequenceClimb climbSequence;
+  public SequenceAutoAdjust adjustSequence;
   public static MecanumDrive getDrive()
   {
     return m_robotDrive;
@@ -132,10 +133,10 @@ public class Robot extends TimedRobot {
     SmartIntegration.addSmartItem(new SmartNum("LimelightY", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Limelight Adjust Num", 0.0d));
+    SmartIntegration.addSmartItem(new SmartNum("Sequences Running", 0.0d));
     SmartIntegration.addSmartItem(new SmartBool("Auto Adjust Enabled", false));
     SmartIntegration.addSmartItem(new SmartNum("Fang Motor Speed", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Slide System Speed", 0.0d));
-    SequenceMaster.addSequence(new SequenceAutoAdjust(-1)); 
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
     theGyro.reset();
     theGyro.calibrate();
@@ -145,8 +146,10 @@ public class Robot extends TimedRobot {
     m_robotDrive.setExpiration(0.1d); 
     grabSequence = new SequenceGrab(solArm, solHand);
     climbSequence = new SequenceClimb(fangMotor, pulleyMotor, theGyro);
+    adjustSequence = new SequenceAutoAdjust();
     SequenceMaster.addSequence(grabSequence);
     SequenceMaster.addSequence(climbSequence);
+    SequenceMaster.addSequence(adjustSequence);
   }
 
   public int ticks = 0;
@@ -171,9 +174,9 @@ public class Robot extends TimedRobot {
     // Use the joystick X axis for lateral movement, Y axis for forward
     // movement, and Z axis for rotation.
     double damper = 0.3d;
-    double xval = -floorClip(M_Joystick.getX() * damper, 0.125);
-    double yval = floorClip(M_Joystick.getY() * damper, 0.125);
-    double zval = -floorClip(M_Joystick.getZ() * damper, 0.3);
+    double xval = -floorClip(M_Joystick.getX() * damper, 0.05);
+    double yval = floorClip(M_Joystick.getY() * damper, 0.05);
+    double zval = -floorClip(M_Joystick.getZ() * damper, 0.05);
     SmartIntegration.setSmartValue("Fang Motor Speed", fangMotor.get());
     SequenceMaster.updateSequences();
     GrabStates curState = Button.BASE_BOTLEFT.isPressed() ? GrabStates.HOLDING : 
@@ -206,38 +209,12 @@ public class Robot extends TimedRobot {
     }
 
     SmartIntegration.setSmartValue("Limelight Adjust Enabled", autoAdjustEnabled());
-    
-    //Yuliana's section
+    SmartIntegration.setSmartValue("Sequences Running", (double)SequenceMaster.activeSequences.size());
 
-
-
-
-
-    //Celina's section
-
-
-
-
-
-    //Samuel's section
-
-
-
-
-
-    //Varneeka's section
-
-
-
-
-
-    //Jihaan's section
-
-
-
-
-
-    //End sections
+    if(Button.JOY_TRIGGER.isPressed() && autoAdjustEnabled())
+    {
+      zval = -adjustSequence.rotationOffset; //negative because it gets flipped in driveCartesian.
+    }
 
     if(Button.BASE_BOTRIGHT.isPressed(getJoystick()))
     {
@@ -249,7 +226,7 @@ public class Robot extends TimedRobot {
     }
 
 
-    //Testing the fang motor, setting speed of Y value of second joystick if button is pressed
+    //If in climb mode and the top right button on top of the joystick is pressed, operate the fang motor.
     if(Button.JOY_TOPRIGHT.isPressed(getJoystick()) && climbModeEnabled)
     {
       fangMotor.set(-getJoystick().getY() * 0.55);
@@ -261,12 +238,18 @@ public class Robot extends TimedRobot {
 
     SmartIntegration.setSmartValue("ClimbModeEnabled", climbModeEnabled);
 
-    //Testing the pulley motor, setting speed of Y value of joystick if button is pressed
-
-    if(Button.JOY_BOTLEFT.isPressed())
+    if(Button.JOY_BOTLEFT.isPressed() || Button.JOY_TRIGGER.isPressed())
     {
+      boolean isOnlyAutoAdjust = Button.JOY_TRIGGER.isPressed() && !Button.JOY_BOTLEFT.isPressed();
       boolean isClimbing = climbModeEnabled;
-      m_robotDrive.driveCartesian(isClimbing ? 0.0d : -xval, isClimbing ? -Math.abs(yval) : -yval, isClimbing ? 0.0d : -zval, 0.0);
+      if(Button.JOY_TRIGGER.isPressed())
+      {
+        double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
+        double scale = 0.05d + 0.95d * (((35.0d - limeArea) / 35.0d));
+        xval = xval * scale;
+        yval = yval * scale;
+      }
+      m_robotDrive.driveCartesian(isClimbing ? 0.0d : isOnlyAutoAdjust ? 0.0d : -xval, isClimbing ? -Math.abs(yval) : isOnlyAutoAdjust ? 0.0d : -yval, isClimbing ? 0.0d : -zval, 0.0);
     }
   }
 
@@ -276,7 +259,7 @@ public class Robot extends TimedRobot {
     double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
     double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
 
-    return Math.abs(limeXOff) <= 20.0f && limeArea >= 3.0d && limeArea <= 35.0d;
+    return Math.abs(limeXOff) <= 28.0f && limeArea >= 1.5d && limeArea <= 35.0d;
   }
 
   public static double floorClip(double in, double floor)
