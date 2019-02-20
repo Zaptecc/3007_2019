@@ -1,8 +1,6 @@
 package frc.robot.sequence;
 
 import edu.wpi.first.wpilibj.Solenoid;
-import frc.robot.Robot;
-import frc.robot.Robot.*;
 
 public class SequenceGrab extends Sequence
 {
@@ -23,7 +21,8 @@ public class SequenceGrab extends Sequence
         HOLDING;//3 Extends both the arm and the hand, or just the hand if the arm is extended.
     }
 
-    public GrabStates handState = GrabStates.INACTIVE;
+    public GrabStates handState = GrabStates.HOLDING;
+    public GrabStates prevState = GrabStates.HOLDING;
     
     public SequenceGrab(Solenoid arm, Solenoid hand)
     {
@@ -42,7 +41,11 @@ public class SequenceGrab extends Sequence
     {
         if(handState.ordinal() > 0)
         {
-            int maxLen = (HAND_MAX_OFFSET);
+            int maxLen = (HAND_MAX_OFFSET) - (prevState == GrabStates.ACTIVE && handState == GrabStates.HOLDING ? HAND_MAX_OFFSET : 0);
+            if(prevState == GrabStates.ACTIVE && handState == GrabStates.HOLDING)
+            {
+                handOffset = maxLen - 1;
+            }
             ++handOffset;
             armPiston.set(true);
             handPiston.set((handState.ordinal() > 1) && handOffset >= maxLen);

@@ -1,7 +1,6 @@
 package frc.robot.sequence;
 
 import frc.robot.Robot;
-import frc.robot.Robot.Button;
 import frc.robot.smartint.SmartIntegration;
 
 public class SequenceAutoAdjust extends Sequence
@@ -22,9 +21,8 @@ public class SequenceAutoAdjust extends Sequence
         double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
         double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
         double areaPerc = limeArea / 30.0d;
-        double speedMultiplier = 2.0 / limeArea * 5.0d;
+        double speedMultiplier = 2.0 / limeArea * 4.0d;
         rotationOffset = (limeXOff / 20.0f) * areaPerc * speedMultiplier;
         SmartIntegration.setSmartValue("Limelight Adjust Num", rotationOffset);
-        SmartIntegration.setSmartValue("Auto Adjust Enabled", Button.JOY_TOPLEFT.isPressed());
     }
 }
