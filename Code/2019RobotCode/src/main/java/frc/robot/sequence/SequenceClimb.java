@@ -14,6 +14,12 @@ public class SequenceClimb extends Sequence
     private ADIS16448_IMU tiltSensor;
     public boolean changingSlide = false;
 
+    public enum ClimbStates {
+        UP,
+        DOWN,
+        DISABLED;
+    }
+
     public SequenceClimb(CANSparkMax fang, Jaguar pulley, ADIS16448_IMU imu)
     {
         super(-1,"ClimbStep");
@@ -24,7 +30,7 @@ public class SequenceClimb extends Sequence
 
     public void sequenceUpdate() 
     {
-        if(Robot.climbModeEnabled)
+        if(Robot.CLIMB_STATE == ClimbStates.UP)
         {
             if(Controls.getFangControl() || Controls.getAutoFang())
             {
@@ -35,11 +41,11 @@ public class SequenceClimb extends Sequence
                     Robot.getDrive().driveCartesian(0.0d, -0.2d, 0.0d);
                 }
 
-                if(!Controls.getFangControl() && (!Controls.getSlideControl() || Controls.getAutoFang()))
+                if(!Controls.getFangControl() && (!Controls.getSlideControl() && Controls.getAutoFang()))
                 {
            //            fangMotor.set(motorSpeed);
                     double threshold = 0.1d;
-                    double offset = 0.275d;
+                    double offset = 0.255d;
                     if(xAng > offset + threshold)
                     {
                         pulleyMotor.set(pulleyMotor.get() - motorSpeed);

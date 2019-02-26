@@ -22,7 +22,10 @@ public final class SequenceMaster
 
     public static void addSequence(Sequence sequence)
     {
-        activeSequences.add(sequence);
+        if(sequence != null)
+        {
+            activeSequences.add(sequence);
+        }
     }
 
     public static boolean isSequenceRunning(String id)

@@ -71,23 +71,23 @@ public class Controls
     }
     public static boolean getClimbModeEnabled()
     {
-        return Button.BASE_BOTRIGHT.isPressed() || Button.BASE_BOTRIGHT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && (Button.BASE_BOTRIGHT.isPressed() || Button.BASE_BOTRIGHT.isPressed(Robot.getJoystick2()));
     }
     public static boolean getClimbModeDisabled()
     {
-        return Button.BASE_TOPRIGHT.isPressed() || Button.BASE_TOPRIGHT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && (Button.BASE_TOPRIGHT.isPressed() || Button.BASE_TOPRIGHT.isPressed(Robot.getJoystick2()));
     }
     public static boolean getFangControl()
     {
-        return Button.JOY_TOPRIGHT.isPressed() || Button.JOY_TOPRIGHT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && (Button.JOY_TOPRIGHT.isPressed() || Button.JOY_TOPRIGHT.isPressed(Robot.getJoystick2()));
     }
     public static boolean isSecondJoystickControllingFangMotor()
     {
-        return Button.JOY_TOPRIGHT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && Button.JOY_TOPRIGHT.isPressed(Robot.getJoystick2());
     }  
     public static boolean getSlideControl()
     {
-        return Button.JOY_BOTRIGHT.isPressed() || Button.JOY_BOTRIGHT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && (Button.JOY_BOTRIGHT.isPressed() || Button.JOY_BOTRIGHT.isPressed(Robot.getJoystick2()));
     }
 
     /**
@@ -96,7 +96,7 @@ public class Controls
      */
     public static boolean isSecondJoystickControllingSlideMotor()
     {
-        return Button.JOY_BOTRIGHT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && Button.JOY_BOTRIGHT.isPressed(Robot.getJoystick2());
     }  
 
     /**
@@ -104,7 +104,7 @@ public class Controls
      */
     public static boolean getAutoFang()
     {
-        return Button.JOY_TOPLEFT.isPressed() || Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && (Button.JOY_TOPLEFT.isPressed() || Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2()));
     }
 
     /**
@@ -112,7 +112,7 @@ public class Controls
      */
     public static boolean isSecondJoystickControllingAutoFang()
     {
-        return Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2());
+        return !Robot.IS_PRACTICE_BOT && Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2());
     }  
 
     public static boolean isSecondJoystickEnabled()

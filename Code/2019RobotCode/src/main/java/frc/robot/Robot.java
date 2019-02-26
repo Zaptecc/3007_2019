@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import frc.robot.sequence.*;
+import frc.robot.sequence.SequenceClimb.ClimbStates;
 import frc.robot.sequence.SequenceGrab.GrabStates;
 import frc.robot.smartint.*;
 import frc.robot.smartint.childs.*;
@@ -30,7 +31,13 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
  * class.
  */
 public class Robot extends TimedRobot {
-  private static final int kFrontLeftChannel = 1;
+
+  /**
+   * SWITCH WHICH ROBOT IS BEING USED WITH THIS VARIABLE!!!
+   */
+  public static final boolean IS_PRACTICE_BOT = true;
+
+  private static final int kFrontLeftChannel = IS_PRACTICE_BOT ? 1 : 1;
   private static final int kRearLeftChannel = 0;
   private static final int kFrontRightChannel = 3;
   private static final int kRearRightChannel = 2;
@@ -39,6 +46,7 @@ public class Robot extends TimedRobot {
   private static final int kPulleyMotor = 4;
 
   private static final int kJoystickChannel = 0;
+
 
   //IMU
   public static final ADIS16448_IMU theGyro = new ADIS16448_IMU();
@@ -51,8 +59,8 @@ public class Robot extends TimedRobot {
   private static Joystick M_Joystick2;
 
   //CLIMBING MOTORS
-  public CANSparkMax fangMotor = new CANSparkMax(kFangMotor, MotorType.kBrushless);
-  public Jaguar pulleyMotor = new Jaguar(kPulleyMotor);
+  public CANSparkMax fangMotor;
+  public Jaguar pulleyMotor;
   
   //PNEUMATICS
   public Compressor comp = new Compressor(0);
@@ -60,12 +68,17 @@ public class Robot extends TimedRobot {
   public Solenoid solHand = new Solenoid(1);
 
   //SEQUENCES (SEGMENTS OF CODE)
-  public SequenceGrab grabSequence;
-  public SequenceClimb climbSequence;
-  public SequenceAutoAdjust adjustSequence;
+  public static SequenceGrab grabSequence;
+  public static SequenceClimb climbSequence;
+  public static SequenceAutoAdjust adjustSequence;
+  public SequenceClimbDown climbDownSequence;
 
+  //0 to 100 movement damping 
   public int movementFromMotorDamper;
   public static final int MOVE_MOTOR_MAX = 100;
+
+  //
+  public static ClimbStates CLIMB_STATE = ClimbStates.DOWN;
 
 
 
@@ -94,18 +107,30 @@ public class Robot extends TimedRobot {
 
   public void enableInit()
   {
+    if(!IS_PRACTICE_BOT)
+    {
+      fangMotor = new CANSparkMax(kFangMotor, MotorType.kBrushless);
+      pulleyMotor = new Jaguar(kPulleyMotor);
+    }
+
     theGyro.reset();
     theGyro.calibrate();
     m_robotDrive.setExpiration(1.0d); 
     SequenceMaster.activeSequences.clear();
-    grabSequence = new SequenceGrab(solArm, solHand);
-    climbSequence = new SequenceClimb(fangMotor, pulleyMotor, theGyro);
-    adjustSequence = new SequenceAutoAdjust();
-    SequenceMaster.addSequence(grabSequence);
-    SequenceMaster.addSequence(climbSequence);
-    SequenceMaster.addSequence(adjustSequence);
+    SequenceMaster.addSequence(Robot.grabSequence);
+
+    if(!IS_PRACTICE_BOT)
+    {
+      SequenceMaster.addSequence(Robot.climbSequence);
+      if(!SequenceMaster.isSequenceRunning("ClimbDown"))
+      {
+        //SequenceMaster.addSequence(climbDownSequence);        
+      }
+    }
+
+    SequenceMaster.addSequence(Robot.adjustSequence);
+
     comp.start();
-    grabSequence.handState = GrabStates.INITIALIZE;
     //CameraServer.getInstance().getServer().setSource(CameraServer.getInstance().startAutomaticCapture(1));
   }
 
@@ -115,14 +140,21 @@ public class Robot extends TimedRobot {
     Jaguar rearLeft = new Jaguar(kRearLeftChannel);
     Jaguar frontRight = new Jaguar(kFrontRightChannel);
     Jaguar rearRight = new Jaguar(kRearRightChannel);
-    
-    //frontLeft.setInverted(false);
-    //rearLeft.setInverted(false);
+    grabSequence = new SequenceGrab(solArm, solHand);
+    grabSequence.handState = GrabStates.INITIALIZE;
 
-    
+    //rearLeft.setInverted(false);
+    rearLeft.setInverted(true);
+    frontLeft.setInverted(true);
+    if(!IS_PRACTICE_BOT)
+    {
+      climbSequence = new SequenceClimb(fangMotor, pulleyMotor, theGyro);
+      climbDownSequence = new SequenceClimbDown(fangMotor, pulleyMotor, theGyro);
+      CLIMB_STATE = ClimbStates.DOWN;      
+    }
+    adjustSequence = new SequenceAutoAdjust();
     
     SmartIntegration.addSmartItem(new SmartBool("RotationEnabled",true));
-    SmartIntegration.addSmartItem(new SmartBool("ClimbModeEnabled",false));
     SmartIntegration.addSmartItem(new SmartBool("Limelight Adjust Enabled",true));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration X", theGyro.getAccelX()));
     SmartIntegration.addSmartItem(new SmartNum("Acceleration Y", theGyro.getAccelY()));
@@ -133,8 +165,14 @@ public class Robot extends TimedRobot {
     SmartIntegration.addSmartItem(new SmartNum("LimelightArea", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Limelight Adjust Num", 0.0d));
     SmartIntegration.addSmartItem(new SmartNum("Sequences Running", 0.0d));
-    SmartIntegration.addSmartItem(new SmartNum("Fang Motor Speed", 0.0d));
-    SmartIntegration.addSmartItem(new SmartNum("Slide System Speed", 0.0d));
+
+    if(!IS_PRACTICE_BOT)
+    {
+      SmartIntegration.addSmartItem(new SmartNum("Fang Motor Speed", 0.0d));
+      SmartIntegration.addSmartItem(new SmartNum("Slide System Speed", 0.0d));  
+      SmartIntegration.addSmartItem(new SmartBool("ClimbModeEnabled",false));
+    }
+
     SmartIntegration.addSmartItem(new SmartNum("Motor to Movement Damper", 0.0d));
 
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
@@ -146,8 +184,6 @@ public class Robot extends TimedRobot {
   }
 
   public int ticks = 0;
-  public boolean testIng = false;
-  public int testNum = 0;
 
   @Override
   public void teleopPeriodic() {
@@ -158,70 +194,18 @@ public class Robot extends TimedRobot {
     robotUpdate();
   }
 
-
-  public static boolean climbModeEnabled = false;
-  //The main update function, called from both autonomous and teleop as of right now.
-  public void robotUpdate()
+  public void updateClimb()
   {
-    ++ticks;
-    // Use the joystick X axis for lateral movement, Y axis for forward
-    // movement, and Z axis for rotation.
-    double damper = 0.45d;
-    double xval = -floorClip(M_Joystick.getX() * damper, 0.05);
-    double yval = floorClip(M_Joystick.getY() * damper, 0.05);
-    double zval = -floorClip(M_Joystick.getZ() * damper, 0.05);
     SmartIntegration.setSmartValue("Fang Motor Speed", fangMotor.get());
-    SequenceMaster.updateSequences();
-    GrabStates curState = Controls.getPneumaticHOLDING() ? GrabStates.HOLDING : 
-    Controls.getPneumaticACTIVE() ? GrabStates.ACTIVE : 
-    Controls.getPneumaticINACTIVE() ? GrabStates.INACTIVE : 
-    grabSequence.handState;
-    
-    if(curState != grabSequence.handState) {grabSequence.handOffset = 0;}
-    grabSequence.prevState = grabSequence.handState;
-    grabSequence.handState = curState;
-
-    if(ticks % 8 == 0)
-    {
-      NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight"); //Accessing the Limelight from the network.
-      NetworkTableEntry tx = table.getEntry("tx"); //Target X-offset from Limelight.
-      NetworkTableEntry ty = table.getEntry("ty"); //Target Y-offset from Limelight.
-      NetworkTableEntry ta = table.getEntry("ta"); //% of screen target fills of Limelight.
-      NetworkTableEntry ts = table.getEntry("ts"); //% of screen target fills of Limelight.
-  
-      //read values periodically
-      double x = tx.getDouble(0.0); //Convert the NetworkTableEntry to useable, double format.
-      double y = ty.getDouble(0.0);
-      double area = ta.getDouble(0.0);
-  
-      //post to smart dashboard periodically
-      SmartIntegration.setSmartValue("LimelightX", x); //Push the Limelight variables to SmartDashboard.
-      SmartIntegration.setSmartValue("LimelightY", y);
-      SmartIntegration.setSmartValue("LimelightStrafe", ts.getDouble(0.0));
-      SmartIntegration.setSmartValue("LimelightArea", area);
-      SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
-      SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
-      SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
-    }
-
     SmartIntegration.setSmartValue("Slide System Speed", pulleyMotor.get());
-    SmartIntegration.setSmartValue("Fang Motor Speed", fangMotor.get());
-    SmartIntegration.setSmartValue("Motor to Movement Damper", (double)movementFromMotorDamper);
-    SmartIntegration.setSmartValue("Limelight Adjust Enabled", autoAdjustEnabled());
-    SmartIntegration.setSmartValue("Sequences Running", (double)SequenceMaster.activeSequences.size());
-
-    if(Controls.getAutoAdjustMode() && autoAdjustEnabled())
-    {
-      zval = -adjustSequence.rotationOffset; //negative because it gets flipped in driveCartesian.
-    }
-
+    SmartIntegration.setSmartValue("ClimbModeEnabled", CLIMB_STATE == ClimbStates.UP);  
     if(Controls.getClimbModeEnabled())
     {
-      climbModeEnabled = true;
+      CLIMB_STATE = ClimbStates.UP;
     }
     if(Controls.getClimbModeDisabled())
     {
-      climbModeEnabled = false;
+      CLIMB_STATE = ClimbStates.DISABLED;
     }
 
     //If in climb mode and the top right button on top of the joystick is pressed, operate the fang motor.
@@ -231,7 +215,7 @@ public class Robot extends TimedRobot {
     }
     else
     {
-      if(Controls.getAutoFang() && climbModeEnabled)
+      if(Controls.getAutoFang() && CLIMB_STATE == ClimbStates.UP)
       {
         fangMotor.set(0.25d);
       }
@@ -245,12 +229,100 @@ public class Robot extends TimedRobot {
     {
         pulleyMotor.set(Controls.isSecondJoystickControllingSlideMotor() ? -Robot.getJoystick2().getY() * 0.85 : -Robot.getJoystick().getY() * 0.85d);
     }
-    else if(!climbSequence.changingSlide)
+    else if(!climbSequence.changingSlide && !SequenceMaster.isSequenceRunning("ClimbDown"))
     {
         pulleyMotor.set(0.0d);
     }
+  }
 
-    SmartIntegration.setSmartValue("ClimbModeEnabled", climbModeEnabled);
+  public void updateAdjust()
+  {
+    if(Controls.getAutoAdjustMode())
+    {
+      double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
+      //double limeSkew = (double)SmartIntegration.getSmartValue("LimelightStrafe");
+      double scale = 0.15d + 0.85d * (((35.0d - limeArea) / 35.0d));
+      //xval = xval * scale + (limeSkew + 45);
+      xval = xval / 0.3d;
+      yval = yval * scale;
+    }
+  }
+
+  public void updatePeriodicSmartVals()
+  {
+    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight"); //Accessing the Limelight from the network.
+    NetworkTableEntry tx = table.getEntry("tx"); //Target X-offset from Limelight.
+    NetworkTableEntry ty = table.getEntry("ty"); //Target Y-offset from Limelight.
+    NetworkTableEntry ta = table.getEntry("ta"); //% of screen target fills of Limelight.
+    NetworkTableEntry ts = table.getEntry("ts"); //skew of limelight ot target.
+
+    //read values periodically
+    double x = tx.getDouble(0.0); //Convert the NetworkTableEntry to useable, double format.
+    double y = ty.getDouble(0.0);
+    double area = ta.getDouble(0.0);
+
+    //post to smart dashboard periodically
+    SmartIntegration.setSmartValue("LimelightX", x); //Push the Limelight variables to SmartDashboard.
+    SmartIntegration.setSmartValue("LimelightY", y);
+    SmartIntegration.setSmartValue("LimelightStrafe", ts.getDouble(0.0));
+    SmartIntegration.setSmartValue("LimelightArea", area);
+    SmartIntegration.setSmartValue("Acceleration X", theGyro.getAccelX()); //Push the IMU accelerations to SmartDashboard.
+    SmartIntegration.setSmartValue("Acceleration Y", theGyro.getAccelY());
+    SmartIntegration.setSmartValue("Acceleration Z", theGyro.getAccelZ());  
+
+
+    SmartIntegration.setSmartValue("Motor to Movement Damper", (double)movementFromMotorDamper);
+    SmartIntegration.setSmartValue("Sequences Running", (double)SequenceMaster.activeSequences.size());
+    SmartIntegration.setSmartValue("Limelight Adjust Enabled", autoAdjustEnabled());
+  }
+
+  double xval = 0.0d;
+  double yval = 0.0d;
+  double zval = 0.0d;
+
+  //The main update function, called from both autonomous and teleop as of right now.
+  public void robotUpdate()
+  {
+    ++ticks;
+    // Use the joystick X axis for lateral movement, Y axis for forward
+    // movement, and Z axis for rotation.
+    double damper = 0.45d;
+    xval = -floorClip((IS_PRACTICE_BOT ? M_Joystick.getY() : M_Joystick.getX()) * damper, 0.05);
+    yval = floorClip((IS_PRACTICE_BOT ? M_Joystick.getX() : M_Joystick.getY()) * damper, 0.05);
+    zval = -floorClip(M_Joystick.getZ() * damper, 0.05);
+
+    SequenceMaster.updateSequences();
+    if(SequenceMaster.isSequenceRunning("ClimbDown") && !IS_PRACTICE_BOT)
+    {
+      return;
+    }
+
+    GrabStates curState = Controls.getPneumaticHOLDING() ? GrabStates.HOLDING : 
+    Controls.getPneumaticACTIVE() ? GrabStates.ACTIVE : 
+    Controls.getPneumaticINACTIVE() ? GrabStates.INACTIVE : 
+    grabSequence.handState;
+    
+    if(curState != grabSequence.handState) {grabSequence.handOffset = 0;}
+    grabSequence.prevState = grabSequence.handState;
+    grabSequence.handState = curState;
+
+    if(ticks % 8 == 0)
+    {
+      updatePeriodicSmartVals();
+    }
+
+    if(!IS_PRACTICE_BOT)
+    {
+      updateClimb();
+    }
+
+    updateAdjust();
+
+    if(Controls.getAutoAdjustMode() && autoAdjustEnabled())
+    {
+      zval = -adjustSequence.rotationOffset; //negative because it gets flipped in driveCartesian.
+    }
+    
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("camMode").setNumber(Controls.getAutoAdjustMode() ? 0 : 1);
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(Controls.getAutoAdjustMode() ? 3 : 1);
 
@@ -261,9 +333,8 @@ public class Robot extends TimedRobot {
       zval *= 0.5d;
     }
 
-    boolean isOnlyAutoAdjust = Controls.getAutoAdjustMode() && !Controls.getDriveMode();
-    boolean isClimbing = climbModeEnabled;
-    boolean disableAllMovement = Controls.getSlideControl() || Controls.getFangControl();
+    boolean isClimbing = CLIMB_STATE == ClimbStates.UP && !IS_PRACTICE_BOT;
+    boolean disableAllMovement = (Controls.getSlideControl() || Controls.getFangControl()) && !IS_PRACTICE_BOT;
 
     if (disableAllMovement)
     {
@@ -286,22 +357,12 @@ public class Robot extends TimedRobot {
     xval *= moveDamper;
     yval *= moveDamper;
     zval *= moveDamper;
-    System.out.println("" + moveDamper);
-
-    if(Controls.getAutoAdjustMode())
-    {
-      double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
-      //double limeSkew = (double)SmartIntegration.getSmartValue("LimelightStrafe");
-      double scale = 0.15d + 0.85d * (((35.0d - limeArea) / 35.0d));
-      //xval = xval * scale + (limeSkew + 45);
-      xval = xval / 0.3d;
-      yval = yval * scale;
-    }
 
     if(!(boolean)SmartIntegration.getSmartValue("RotationEnabled") == true)
     {
       zval = 0.0d;
     }
+
     m_robotDrive.driveCartesian(isClimbing ? 0.0d : -xval, isClimbing ? -Math.abs(yval) : -yval, isClimbing ? 0.0d : -zval, 0.0);
   }
 
