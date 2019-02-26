@@ -58,6 +58,8 @@ public class Robot extends TimedRobot {
   private static Joystick M_Joystick;
   private static Joystick M_Joystick2;
 
+
+
   //CLIMBING MOTORS
   public CANSparkMax fangMotor;
   public Jaguar pulleyMotor;
@@ -363,7 +365,7 @@ public class Robot extends TimedRobot {
       zval = 0.0d;
     }
 
-    m_robotDrive.driveCartesian(isClimbing ? 0.0d : -xval, isClimbing ? -Math.abs(yval) : -yval, isClimbing ? 0.0d : -zval, 0.0);
+    m_robotDrive.driveCartesian(isClimbing ? 0.0d : -xval, isClimbing ? -Math.abs(IS_PRACTICE_BOT ? -zval : yval) : -(IS_PRACTICE_BOT ? -zval : yval), isClimbing ? 0.0d : -(IS_PRACTICE_BOT ? yval : zval), 0.0);
   }
 
   public static boolean autoAdjustEnabled()
