@@ -21,7 +21,7 @@ public class SequenceAutoAdjust extends Sequence
         double limeYOff = (double)SmartIntegration.getSmartValue("LimelightY");
         double limeArea = (double)SmartIntegration.getSmartValue("LimelightArea");
         double areaPerc = limeArea / 30.0d;
-        double speedMultiplier = 2.0 / limeArea * 4.0d;
+        double speedMultiplier = 1.0 / limeArea * 4.0d;
         rotationOffset = (limeXOff / 20.0f) * areaPerc * speedMultiplier;
         SmartIntegration.setSmartValue("Limelight Adjust Num", rotationOffset);
     }

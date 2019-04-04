@@ -2,6 +2,9 @@ package frc.robot.sequence;
 
 import java.util.ArrayList;
 
+/**
+ * A class to handle all things sequences. Adding, removing, updating and checking if they are running.
+ */
 public final class SequenceMaster
 {
     public static final ArrayList<Sequence> activeSequences = new ArrayList<Sequence>();

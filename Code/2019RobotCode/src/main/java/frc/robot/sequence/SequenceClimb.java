@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.*;
 import frc.robot.Controls;
 import frc.robot.Robot;
 
+//Handles all the climbing code, and tells the slide-system motors and the fang motors where to move.
 public class SequenceClimb extends Sequence
 {
     private CANSparkMax fangMotor;
@@ -32,9 +33,15 @@ public class SequenceClimb extends Sequence
     {
         if(Robot.CLIMB_STATE == ClimbStates.UP)
         {
-            if(Controls.getFangControl() || Controls.getAutoFang())
+            //If neither fang controls are being pressed, stop the slide system.
+            if (!Controls.getFangControl() && !Controls.getAutoFang())
             {
-                double motorSpeed = (1.0d / 20.0d);
+                pulleyMotor.set(0.0d);
+                changingSlide = false;
+            }
+            else if(Controls.getFangControl() || Controls.getAutoFang())
+            {
+                double motorSpeed = (1.0d / 30.0d);
                 double xAng = tiltSensor.getAccelX();
                 if(fangMotor.get() > 0.05d && xAng > -0.1 && xAng < 0 && !Controls.getSlideControl())
                 {
@@ -44,8 +51,8 @@ public class SequenceClimb extends Sequence
                 if(!Controls.getFangControl() && (!Controls.getSlideControl() && Controls.getAutoFang()))
                 {
            //            fangMotor.set(motorSpeed);
-                    double threshold = 0.1d;
-                    double offset = 0.255d;
+                    double threshold = 0.05d;//0.1
+                    double offset = 0.05d;//0.255
                     if(xAng > offset + threshold)
                     {
                         pulleyMotor.set(pulleyMotor.get() - motorSpeed);

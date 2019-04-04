@@ -6,6 +6,9 @@ import edu.wpi.first.wpilibj.Jaguar;
 import frc.robot.Controls;
 import frc.robot.Robot;
 
+
+@Deprecated
+//An unfinished sequence to let us start at level 2. I just ran out of time to finish this.
 public class SequenceClimbDown extends Sequence 
 {
     //STATES

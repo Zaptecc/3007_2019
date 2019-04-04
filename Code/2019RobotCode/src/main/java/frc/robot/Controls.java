@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class Controls 
 {
+    //A quality of life enum to make determining if a button is pressed much smoother.
+    //All you need to call is Button.BASE_TOPRIGHT.isPressed() and it will tell you.
     private enum Button
     {
       BASE_TOPRIGHT(12),
@@ -49,6 +51,15 @@ public class Controls
       }
     }
 
+
+
+
+    
+    //And here is just a static list of controls, so that if you need to change controls it's easy to alter all in one spot.
+
+
+
+
     public static boolean getPneumaticINACTIVE()
     {
         return Button.BASE_BOTCENTER.isPressed() || Button.BASE_BOTCENTER.isPressed(Robot.getJoystick2());
@@ -83,7 +94,7 @@ public class Controls
     }
     public static boolean isSecondJoystickControllingFangMotor()
     {
-        return !Robot.IS_PRACTICE_BOT && Button.JOY_TOPRIGHT.isPressed(Robot.getJoystick2());
+        return false;//!Robot.IS_PRACTICE_BOT && Button.JOY_TOPRIGHT.isPressed(Robot.getJoystick2());
     }  
     public static boolean getSlideControl()
     {
@@ -96,7 +107,7 @@ public class Controls
      */
     public static boolean isSecondJoystickControllingSlideMotor()
     {
-        return !Robot.IS_PRACTICE_BOT && Button.JOY_BOTRIGHT.isPressed(Robot.getJoystick2());
+        return false;//!Robot.IS_PRACTICE_BOT && Button.JOY_BOTRIGHT.isPressed(Robot.getJoystick2());
     }  
 
     /**
@@ -109,15 +120,16 @@ public class Controls
 
     /**
      * @return true if the second joystick (id 1) is enabling auto-climb mode.
+     * 
      */
     public static boolean isSecondJoystickControllingAutoFang()
     {
-        return !Robot.IS_PRACTICE_BOT && Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2());
+        return false;//!Robot.IS_PRACTICE_BOT && Button.JOY_TOPLEFT.isPressed(Robot.getJoystick2());
     }  
 
     public static boolean isSecondJoystickEnabled()
     {
-        return Robot.getJoystick2() != null;
+        return false;//Robot.getJoystick2() != null;
     }
 
     /**

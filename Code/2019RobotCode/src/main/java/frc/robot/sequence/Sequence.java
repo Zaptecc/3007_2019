@@ -1,5 +1,8 @@
 package frc.robot.sequence;
 
+/**
+ * A class to help segment code and organize. Can be limited to a certain time limit.
+ */
 public abstract class Sequence
 {
     /**
@@ -10,7 +13,8 @@ public abstract class Sequence
     public final String id;
 
     /**
-     * @param length length in seconds.
+     * @param length length in seconds. If the sequence is infinite, set length to -1.
+     * @param id the string identifier for this sequence. You can check if this sequence is running already in SequenceMaster.isSequenceRunning(id).
      */
     public Sequence(int length, String id)
     {

@@ -2,6 +2,7 @@ package frc.robot.sequence;
 
 import edu.wpi.first.wpilibj.Solenoid;
 
+//A sequence to handle the pneumatic arm's states (set in Robot.java)
 public class SequenceGrab extends Sequence
 {
     public Solenoid armPiston;
@@ -15,14 +16,14 @@ public class SequenceGrab extends Sequence
     
     public enum GrabStates
     {
-        INACTIVE,//0 Retracts both the arm and the hand.
-        ACTIVE,//1 Extends just the arm.
-        INITIALIZE,//2 Extends the arm and grabs sooner than HOLDING.
-        HOLDING;//3 Extends both the arm and the hand, or just the hand if the arm is extended.
+        INACTIVE,//ordinal is 0. Retracts both the arm and the hand.
+        ACTIVE,//ordinal is 1. Extends just the arm.
+        INITIALIZE,//ordinal is 2. Extends the arm and grabs sooner than HOLDING.
+        HOLDING;//ordinal is 3. Extends both the arm and the hand, or just the hand if the arm is extended.
     }
 
-    public GrabStates handState = GrabStates.HOLDING;
-    public GrabStates prevState = GrabStates.HOLDING;
+    public GrabStates handState = GrabStates.INITIALIZE;
+    public GrabStates prevState = GrabStates.INITIALIZE;
     
     public SequenceGrab(Solenoid arm, Solenoid hand)
     {
@@ -39,7 +40,7 @@ public class SequenceGrab extends Sequence
     @Override
     public void sequenceUpdate() 
     {
-        if(handState.ordinal() > 0)
+        if(handState.ordinal() > 0) //Ordinal is the order that the enum is in. So
         {
             int maxLen = (HAND_MAX_OFFSET) - (prevState == GrabStates.ACTIVE && handState == GrabStates.HOLDING ? HAND_MAX_OFFSET : 0);
             if(prevState == GrabStates.ACTIVE && handState == GrabStates.HOLDING)
@@ -47,8 +48,8 @@ public class SequenceGrab extends Sequence
                 handOffset = maxLen - 1;
             }
             ++handOffset;
-            armPiston.set(true);
-            handPiston.set((handState.ordinal() > 1) && handOffset >= maxLen);
+            armPiston.set(handState == GrabStates.INITIALIZE ? handOffset > 10 : handOffset >= 0);
+            handPiston.set(handState == GrabStates.INITIALIZE ? handOffset > 15 : (handState.ordinal() > 1) && handOffset >= (handState == GrabStates.INITIALIZE ? (int)(maxLen * 0.35d) : maxLen));
 
             if(handOffset >= maxLen && handState.ordinal() > 1)
             {
